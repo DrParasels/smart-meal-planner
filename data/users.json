@@ -1,0 +1,14 @@
+[
+  {
+    "id": "5c2c843a-a2bd-490e-a9c5-a92da17d0faa",
+    "login": "admin",
+    "email": "admin_mail",
+    "password": "$2b$10$HO75Oa6g0cVsBWtepXtji.jchgCcazj2ewBfr7ddOvpe1ujmGiB0q"
+  },
+  {
+    "id": "361a1654-5a61-4855-8b01-c1cadcae9ccf",
+    "login": "dima1",
+    "email": "dima1",
+    "password": "$2b$10$E5xR./rUbNiXSNtDils44OQkBdG.O1k9waBQ5vqgR1gIq684KGerK"
+  }
+]
