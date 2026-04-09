@@ -23,7 +23,7 @@ export const saveProfile = async (profile: Profile) => {
 
 export const getProfile = async () => {
     try {
-        const res = await fetch('api/profile', {
+        const res = await fetch('/api/profile', {
             method: "GET",
         })
         if (!res.ok) {
@@ -33,6 +33,7 @@ export const getProfile = async () => {
         return data
     } catch (error) {
         console.error(error)
+        return null
     }
 
 }

@@ -89,7 +89,7 @@ export async function GET() {
     })
   
     if (!profile) {
-      return NextResponse.json({ profile: null })
+      return NextResponse.json(null)
     }
   
     return NextResponse.json(profile)
@@ -100,7 +100,6 @@ export async function GET() {
       { status: 500 }
     )
   }
-
 }
 
 

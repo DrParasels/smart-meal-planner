@@ -3,24 +3,27 @@
 import { CurrentUser } from "@/app/layout";
 import { Button } from "antd";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 interface NavbarProps {
   user: CurrentUser | undefined;
+  onboarding: boolean;
 }
 
 
-const Navbar = ({user}: NavbarProps) => {
+const Navbar = ({user, onboarding}: NavbarProps) => {
   const router = useRouter();
   async function handleExit() {
     await fetch("/api/auth/logout", { method: "POST" });
+    
     router.refresh();
+    redirect("/login");
   }
 
   return (
     <nav className="flex justify-between p-5 border-b border-gray-200 h-16">
       <Link href={"/"}>Главная</Link>
-      {user ? <Link href={"/dashboard"}>Dashboard</Link> : <></>}
+      {user && !onboarding ? <Link href={"/dashboard"}>Dashboard</Link> : <></>}
       <div>
         {user ? (
           <>

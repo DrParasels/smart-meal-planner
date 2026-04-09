@@ -18,7 +18,7 @@ const LoginPage = () => {
         body: JSON.stringify({email: values.email, password: values.password})
     })
     if (res.ok) {
-        router.push("/onboarding")
+        router.push("/redirect")
         router.refresh();
       }
   };
