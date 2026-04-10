@@ -45,6 +45,7 @@
 
 @layer utilities {
   .main-content {
+    padding: 30px;
     min-height: calc(100vh - 64px);
   }
 }

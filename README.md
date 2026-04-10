@@ -1,5 +1,8 @@
 Для запуска локально npm run dev
 
+Применить изменения модели: npx prisma migrate dev --name название миграции
+Посмотреть базу вручную: npx prisma studio
+
 Стили и шрифты:
 Primary:     #2563EB
 Accent:      #F59E0B

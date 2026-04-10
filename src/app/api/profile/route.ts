@@ -12,11 +12,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     let decoded = null;
+
     try {
       decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
     } catch {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
+    
     const userId = decoded.userId;
     const body = await req.json();
     const {

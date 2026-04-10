@@ -31,3 +31,32 @@ model Profile {
   fat           Int?
   carbs         Int?
 }
+
+model Recipe {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+
+  ingredients RecipeIngredient[]
+}
+
+model Ingredient {
+  id String  @id @default(uuid())
+  name String
+  calories    Int
+  protein     Int
+  fat         Int
+  carbs       Int
+
+  recipes RecipeIngredient[]
+}
+
+model RecipeIngredient {
+  id String  @id @default(uuid())
+  recipeId  String
+  ingredientId String
+  mass Int
+
+  recipe Recipe @relation(fields: [recipeId], references: [id])
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+}
