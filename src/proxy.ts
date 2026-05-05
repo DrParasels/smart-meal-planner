@@ -3,7 +3,6 @@ import type { NextRequest } from "next/server"
 
 export function proxy(request: NextRequest) {
     const token = request.cookies.get("token");
-    console.log('sdsdsd')
 
     if(!token && request.nextUrl.pathname.startsWith("/dashboard")) {
         return NextResponse.redirect(new URL("/login", request.url))

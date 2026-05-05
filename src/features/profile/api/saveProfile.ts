@@ -35,5 +35,4 @@ export const getProfile = async () => {
         console.error(error)
         return null
     }
-
 }
