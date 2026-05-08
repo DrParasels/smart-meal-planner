@@ -13,6 +13,7 @@ model User {
   email    String  @unique
   password String
   profile Profile?
+  dailyMeals DailyMeal[]
 }
 
 model Profile {
@@ -38,6 +39,7 @@ model Recipe {
   description String?
 
   ingredients RecipeIngredient[]
+  dailyMealItems DailyMealItem[] 
 }
 
 model Ingredient {
@@ -59,4 +61,33 @@ model RecipeIngredient {
 
   recipe Recipe @relation(fields: [recipeId], references: [id])
   ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+}
+
+model DailyMeal {
+  id String  @id @default(uuid())
+  userId String
+  date DateTime
+
+  items DailyMealItem[]
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}
+
+enum MealType {
+  breakfast
+  lunch
+  dinner
+  snack
+}
+
+model DailyMealItem {
+  id String  @id @default(uuid())
+  dailyMealId String
+  recipeId String
+  type MealType
+
+  dailyMeal DailyMeal @relation(fields: [dailyMealId], references: [id])
+  recipe Recipe @relation(fields: [recipeId], references: [id])
 }

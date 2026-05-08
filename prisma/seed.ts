@@ -64,7 +64,11 @@ async function main() {
       { name: "Яблоко", description: "Фрукт" },
       { name: "Банан", description: "Фрукт" },
       { name: "Пельмени", description: "Готовый продукт" },
-      { name: "Куриная грудка", description: "Аэрогриль" },
+      { name: "Кола", description: "Кола" },
+      { name: "Кешью", description: "Кешью" },
+      { name: "Кола zero", description: "Кола zero" },
+      { name: "Чипсы", description: "Чипсы" },
+      { name: "Картошка", description: "Картошка" },
     ],
     skipDuplicates: true,
   });

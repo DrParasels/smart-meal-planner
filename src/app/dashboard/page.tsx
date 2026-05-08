@@ -1,39 +1,41 @@
 "use client";
 
-import { Ingredient, Profile } from "@prisma/client";
-import { AutoComplete, Card, Col, Row, Select } from "antd";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { MealType, Profile } from "@prisma/client";
+import { Button, Progress } from "antd";
+import { useCallback, useEffect, useState } from "react";
+import AddMealModal from "./AddMealModal";
+import { formatDate } from "@/lib/formatDate";
 
-type RecipeIngredient = {
-  name: string;
-  mass: number;
-  calories: number;
-  protein: number;
-  fat: number;
-  carbs: number;
-};
-
-type RecipeWithIngredients = {
+type DailyMealResponse = {
   id: string;
-  name: string;
-  description: string | null;
-  ingredients: RecipeIngredient[];
+  date: string;
+  items: {
+    id: string;
+    type: MealType;
+    recipe: {
+      name: string;
+      description: string | null;
+      protein: number;
+      fat: number;
+      carbs: number;
+      calories: number;
+    };
+  }[];
 };
+
+const MEAL_UI: { type: MealType; label: string }[] = [
+  { type: "breakfast", label: "Завтрак" },
+  { type: "lunch", label: "Обед" },
+  { type: "dinner", label: "Ужин" },
+  { type: "snack", label: "Перекус/другое" },
+];
 
 const DashboardPage = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [recipes, setRecipes] = useState<RecipeWithIngredients[]>([]);
-  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
-  const [filters, setFilters] = useState<{
-    searchRecipes: string;
-    ingredients: string[];
-  }>({
-    searchRecipes: "",
-    ingredients: [],
-  });
-  const [filteredRecipes, setFilteredRecipes] =
-    useState<RecipeWithIngredients[]>(recipes);
+  const [dailyMeal, setDailyMeal] = useState<DailyMealResponse | null>(null);
+
+  const [openModal, setOpenModal] = useState(false);
+  const [mealType, setMealType] = useState<MealType | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -41,62 +43,46 @@ const DashboardPage = () => {
       const data = await res.json();
       setProfile(data);
     };
-    const fetchRecipes = async () => {
-      const res = await fetch("/api/recipes");
-      const data = await res.json();
-      setRecipes(data);
+    const fetchDailyMeal = async () => {
+      const res = await fetch("/api/daily-meal");
+      const data: DailyMealResponse = await res.json();
+      setDailyMeal(data);
     };
-    const fetchIngredients = async () => {
-      const res = await fetch("/api/ingredients");
-      const data = await res.json();
-      setIngredients(data)
-    }
     fetchProfile();
-    fetchRecipes();
-    fetchIngredients();
+    fetchDailyMeal();
   }, []);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      const filterList = recipes.filter((recipe) => {
-        const matchSearchRecipes = recipe.name
-          .toLowerCase()
-          .includes(filters.searchRecipes.toLowerCase());
-        const matchIngredients = filters.ingredients.length === 0 || filters.ingredients.every(i => 
-          recipe.ingredients.some(ri => ri.name === i)
-        )  
-        return matchSearchRecipes && matchIngredients;
-      });
-      setFilteredRecipes(filterList);
-    }, 600);
-    return () => clearTimeout(timeout);
-  }, [filters, recipes]);
-
-  const handleSearchRecipes = (text: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      searchRecipes: text,
-    }));
+  const handleClose = () => {
+    setOpenModal(false);
+    setMealType(null);
   };
 
-  const onSelect = (value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      searchRecipes: value,
-    }));
+  const slotSumCalories = (type: MealType) => {
+    const sum = (dailyMeal?.items ?? [])
+      .filter((meal) => meal.type === type)
+      .reduce((acc, meal) => acc + meal.recipe.calories, 0);
+    return sum;
   };
 
-  const handleChangeIngredients = (arr: string[]) => {
-    console.log(arr)
-    setFilters((prev) => ({
-      ...prev,
-      ingredients: arr,
-    }));
-  }
+  const sumCalories = (dailyMeal?.items ?? []).reduce(
+    (acc, meal) => acc + meal.recipe.calories,
+    0,
+  );
+
+  console.log(dailyMeal);
+
+  const handleAddMealItem = (val: MealType) => {
+    setOpenModal(true);
+    setMealType(val);
+  };
+
+  const handleDeleteMealItem = async (id: string) => {
+    await fetch(`/api/daily-meal/item?id=${id}`, { method: "DELETE" });
+  };
 
   return (
     <div>
-      <div className="pb-15">
+      {/* <div className="pb-15">
         <ul>Данные профиля:</ul>
         <li>Вес: {profile?.weight}</li>
         <li>Пол: {profile?.gender}</li>
@@ -105,60 +91,106 @@ const DashboardPage = () => {
         <li>Белки: {profile?.protein}</li>
         <li>Жиры: {profile?.fat}</li>
         <li>Углеводы: {profile?.carbs}</li>
-      </div>
+      </div> */}
 
-      <div>
-        <h3 className="pb-5">Рецепты</h3>
-        <div className="w-96 pb-10">
-          <AutoComplete
-            options={recipes
-              .filter((item) =>
-                item.name
-                  .toLowerCase()
-                  .includes(filters.searchRecipes.toLowerCase()),
-              )
-              .map((item) => ({ value: item.name, label: item.name }))}
-            style={{ width: "100%" }}
-            onSelect={onSelect}
-            onChange={(text) => handleSearchRecipes(text)}
-            onInputKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.stopPropagation();
-              }
-            }}
-            placeholder="Название блюда"
-          />
-        </div>
-
-        <div className="w-96 pb-10">
-          <Select
-            mode="multiple"
-            allowClear
-            style={{ width: "100%" }}
-            placeholder="Включающий ингредиенты"
-            defaultValue={[]}
-            onChange={handleChangeIngredients}
-            options={ingredients.map(item => ({value:item.name}))}
-          />
-        </div>
-
-        <Row gutter={[16, 16]}>
-          {filteredRecipes.map((item) => (
-            <Col span={6} key={item.id}>
-              <Card
-                title={item.name}
-                hoverable
-                // onClick={() => console.log('sdsdsd')}
-                extra={<Link href={`/recipes/${item.id}`}>Подробнее</Link>}
+      <div className="mb-10">
+        <h3 className="pb-5">Сегодня {formatDate(dailyMeal?.date)}</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+          {MEAL_UI.map((item) => (
+            <div
+              key={item.type}
+              className="min-h-[320px] rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <div className="text-lg font-semibold">{item.label}</div>
+                <div className="text-sm font-semibold text-green-600">
+                  {slotSumCalories(item.type)} ккал
+                </div>
+              </div>
+              <div className="space-y-3">
+                {(dailyMeal?.items ?? []).filter(
+                  (meal) => meal.type === item.type,
+                ).length === 0 ? (
+                  <div className="text-sm text-gray-400">
+                    Нет выбранных блюд
+                  </div>
+                ) : (
+                  (dailyMeal?.items ?? [])
+                    .filter((meal) => meal.type === item.type)
+                    .map((mealItem) => (
+                      <div
+                        key={mealItem.id}
+                        className="flex items-start justify-between gap-3 border-b border-gray-100 pb-3 last:border-b-0 last:pb-0"
+                      >
+                        <div>
+                          <div className="text-base font-medium text-gray-900">
+                            {mealItem.recipe.name}
+                          </div>
+                          <div className="mt-1 flex gap-4 text-sm text-gray-700">
+                            <span>Б: {mealItem.recipe.protein}г</span>
+                            <span>Ж: {mealItem.recipe.fat}г</span>
+                            <span>У: {mealItem.recipe.carbs}г</span>
+                          </div>
+                        </div>
+                        <Button
+                          type="link"
+                          size="small"
+                          danger
+                          className="!h-auto !p-0"
+                          onClick={() => handleDeleteMealItem(mealItem.id)}
+                        >
+                          Удалить
+                        </Button>
+                      </div>
+                    ))
+                )}
+              </div>
+              <Button
+                type="dashed"
+                block
+                className="mt-4"
+                onClick={() => handleAddMealItem(item.type)}
               >
-                {item.ingredients.map((item, idx) => (
-                  <p key={idx}>{item.name}</p>
-                ))}
-              </Card>
-            </Col>
+                Добавить блюдо
+              </Button>
+            </div>
           ))}
-        </Row>
+        </div>
+        <div className="mt-4 mx-auto w-full max-w-sm min-h-[200px] rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="mb-4 flex items-center justify-center">
+            <div className="text-lg font-semibold">Итого за день</div>
+          </div>
+          <div className="mb-3 flex items-baseline justify-center gap-1">
+            <span className="text-2xl font-bold text-green-600">
+              {sumCalories}
+            </span>
+            <span className="text-base text-gray-400">/</span>
+            <span className="text-base text-gray-500">
+              {profile?.dailyCalories} ккал
+            </span>
+          </div>
+          {profile?.dailyCalories && (
+            <Progress
+              percent={Math.round((sumCalories / profile.dailyCalories) * 100)}
+              strokeColor="#16a34a"
+              showInfo={false}
+              size={["100%", 15]}
+            />
+          )}
+          <div className="text-center text-sm text-gray-400">
+            Осталось:{" "}
+            <span className="font-medium text-gray-600">
+              {Math.max(0, (profile?.dailyCalories ?? 0) - sumCalories)} ккал
+            </span>
+          </div>
+        </div>
       </div>
+      <AddMealModal
+        open={openModal}
+        mealType={mealType}
+        dailyMealId={dailyMeal?.id || null}
+        onClose={handleClose}
+      />
     </div>
   );
 };
