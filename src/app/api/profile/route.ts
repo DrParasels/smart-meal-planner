@@ -103,10 +103,24 @@ export async function GET() {
     )
   }
 }
+type ProfileForCalories = {
+  age: number;
+  height: number;
+  weight: number;
+  gender: "male" | "female";
+  activityLevel: "low" | "medium" | "high";
+  goal: "lose" | "maintain" | "gain";
+};
 
+type CaloriesResult = {
+  calories: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+};
 
-function calculateCalories(data: any) {
-    let bmr
+function calculateCalories(data: ProfileForCalories): CaloriesResult {
+    let bmr: number
   
     if (data.gender === "male") {
       bmr =
@@ -122,13 +136,13 @@ function calculateCalories(data: any) {
         161
     }
   
-    const activityMap: any = {
+    const activityMap: Record<ProfileForCalories["activityLevel"], number> = {
       low: 1.2,
       medium: 1.55,
       high: 1.725,
     }
   
-    let calories = bmr * (activityMap[data.activityLevel] || 1.2)
+    let calories = bmr * activityMap[data.activityLevel]
   
     if (data.goal === "lose") calories *= 0.85
     if (data.goal === "gain") calories *= 1.1
@@ -145,6 +159,6 @@ function calculateCalories(data: any) {
       fat,
       carbs,
     }
-  }
+}
 
 

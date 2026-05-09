@@ -1,6 +1,7 @@
-import { Ingredient, MealType } from "@prisma/client";
+import { addRecipe, getIngredients, getRecipes } from "@/shared/api/api";
+import { MealType } from "@prisma/client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AutoComplete, Button, Card, Col, Modal, Row, Select } from "antd";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type RecipeIngredient = {
@@ -32,8 +33,7 @@ export const AddMealModal = ({
   dailyMealId,
   onClose,
 }: AddMealModalProps) => {
-  const [recipes, setRecipes] = useState<RecipeWithIngredients[]>([]);
-  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const queryClient = useQueryClient();
   const [filters, setFilters] = useState<{
     searchRecipes: string;
     ingredients: string[];
@@ -41,29 +41,27 @@ export const AddMealModal = ({
     searchRecipes: "",
     ingredients: [],
   });
+
+  const { data: recipes = [] } = useQuery({
+    queryFn: getRecipes,
+    queryKey: ["recipes"],
+  });
+
+  const { data: ingredients = [] } = useQuery({
+    queryFn: getIngredients,
+    queryKey: ["ingredients"],
+  });
+
+  const { mutate: addNewRecipe } = useMutation({
+    mutationFn: addRecipe,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["daily-meal"] });
+      onClose();
+    },
+  });
+
   const [filteredRecipes, setFilteredRecipes] =
     useState<RecipeWithIngredients[]>(recipes);
-
-  const handleOk = () => {
-    console.log(mealType);
-    onClose();
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const [recipesRes, ingredientsRes] = await Promise.all([
-        fetch("/api/recipes"),
-        fetch("/api/ingredients"),
-      ]);
-      const [recipesData, ingredientsData] = await Promise.all([
-        recipesRes.json(),
-        ingredientsRes.json(),
-      ]);
-      setRecipes(recipesData);
-      setIngredients(ingredientsData);
-    };
-    fetchData();
-  }, []);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -105,20 +103,8 @@ export const AddMealModal = ({
   };
 
   const handleAddRecipe = (recipeId: string) => {
-    console.log(recipeId);
-    console.log(mealType)
-    console.log(dailyMealId)
-    const addRecipe = async (dailyMealId,recipeId,mealType) => {
-      const res = await fetch("/api/daily-meal/item", {
-        method: "POST",
-        body: JSON.stringify({dailyMealId: dailyMealId, recipeId: recipeId, type: mealType})
-      });
-      if(res.ok) {
-        console.log(res)
-        onClose();
-      }
-    }
-    addRecipe(dailyMealId,recipeId,mealType)
+    if (!dailyMealId || !mealType) return;
+    addNewRecipe({ dailyMealId, recipeId, type: mealType });
   };
 
   return (
@@ -126,7 +112,6 @@ export const AddMealModal = ({
       title="Добавить блюдо"
       closable={{ "aria-label": "Custom Close Button" }}
       open={open}
-      onOk={handleOk}
       onCancel={onClose}
       width={900}
       style={{ top: 40 }}

@@ -1,27 +1,13 @@
 "use client";
 
-import { MealType, Profile } from "@prisma/client";
+import { MealType } from "@prisma/client";
 import { Button, Progress } from "antd";
-import { useCallback, useEffect, useState } from "react";
 import AddMealModal from "./AddMealModal";
 import { formatDate } from "@/lib/formatDate";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { deleteMealItem, getDailyMeal, getProfile } from "@/shared/api/api";
+import { useDashboardUiStore } from "@/features/dashboard/model/useDashboardUiStore";
 
-type DailyMealResponse = {
-  id: string;
-  date: string;
-  items: {
-    id: string;
-    type: MealType;
-    recipe: {
-      name: string;
-      description: string | null;
-      protein: number;
-      fat: number;
-      carbs: number;
-      calories: number;
-    };
-  }[];
-};
 
 const MEAL_UI: { type: MealType; label: string }[] = [
   { type: "breakfast", label: "Завтрак" },
@@ -31,31 +17,30 @@ const MEAL_UI: { type: MealType; label: string }[] = [
 ];
 
 const DashboardPage = () => {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [dailyMeal, setDailyMeal] = useState<DailyMealResponse | null>(null);
+  const openModal = useDashboardUiStore((s) => s.openModal);
+  const mealType = useDashboardUiStore((s) => s.mealType);
+  const openAddMealModal = useDashboardUiStore((s) => s.openAddMealModal);
+  const closeAddMealModal = useDashboardUiStore((s) => s.closeAddMealModal);
 
-  const [openModal, setOpenModal] = useState(false);
-  const [mealType, setMealType] = useState<MealType | null>(null);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const res = await fetch("/api/profile");
-      const data = await res.json();
-      setProfile(data);
-    };
-    const fetchDailyMeal = async () => {
-      const res = await fetch("/api/daily-meal");
-      const data: DailyMealResponse = await res.json();
-      setDailyMeal(data);
-    };
-    fetchProfile();
-    fetchDailyMeal();
-  }, []);
+  const { data: profile, isLoading, isError, error } = useQuery({
+    queryKey: ["profile"],
+    queryFn: getProfile,
+  });
 
-  const handleClose = () => {
-    setOpenModal(false);
-    setMealType(null);
-  };
+  const {data: dailyMeal} = useQuery({
+    queryKey: ["daily-meal"],
+    queryFn: getDailyMeal,
+  });
+
+  const { mutate: deleteItem, isPending: isDeleting } = useMutation({
+    mutationFn: (id: string) => deleteMealItem(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["daily-meal"] });
+    },
+
+  })
 
   const slotSumCalories = (type: MealType) => {
     const sum = (dailyMeal?.items ?? [])
@@ -68,17 +53,6 @@ const DashboardPage = () => {
     (acc, meal) => acc + meal.recipe.calories,
     0,
   );
-
-  console.log(dailyMeal);
-
-  const handleAddMealItem = (val: MealType) => {
-    setOpenModal(true);
-    setMealType(val);
-  };
-
-  const handleDeleteMealItem = async (id: string) => {
-    await fetch(`/api/daily-meal/item?id=${id}`, { method: "DELETE" });
-  };
 
   return (
     <div>
@@ -137,7 +111,7 @@ const DashboardPage = () => {
                           size="small"
                           danger
                           className="!h-auto !p-0"
-                          onClick={() => handleDeleteMealItem(mealItem.id)}
+                          onClick={() => deleteItem(mealItem.id)}
                         >
                           Удалить
                         </Button>
@@ -149,7 +123,7 @@ const DashboardPage = () => {
                 type="dashed"
                 block
                 className="mt-4"
-                onClick={() => handleAddMealItem(item.type)}
+                onClick={() => openAddMealModal(item.type)}
               >
                 Добавить блюдо
               </Button>
@@ -189,7 +163,7 @@ const DashboardPage = () => {
         open={openModal}
         mealType={mealType}
         dailyMealId={dailyMeal?.id || null}
-        onClose={handleClose}
+        onClose={closeAddMealModal}
       />
     </div>
   );
