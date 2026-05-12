@@ -39,4 +39,4 @@
 
 9. Внедрить state manager (Zustand, Redux Toolkit, TanStack Query) и отрефакторить все запросы. ✅
 
-10. Проверка в POST /api/daily-meal/item добавить проверку, что dailyMealId принадлежит текущему пользователю, перед create.
+10. Проверка в POST /api/daily-meal/item добавить проверку, что dailyMealId принадлежит текущему пользователю, перед create. ✅

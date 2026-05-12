@@ -145,7 +145,7 @@
 
 
 
-🚀 Этап X — Тестирование (ОБЯЗАТЕЛЬНЫЙ)
+🚀 Этап 6 — Тестирование 
 
 Что сделать:
 
@@ -154,9 +154,11 @@ React Testing Library:
 форма onboarding
 выбор блюд
 dashboard
+
 Backend (NestJS)
 unit тесты сервисов
 e2e (минимум 1–2 сценария)
 E2E (по желанию, но очень бустит)
+
 Playwright:
 регистрация → onboarding → dashboard

@@ -8,12 +8,13 @@ datasource db {
 }
 
 model User {
-  id       String  @id @default(uuid())
-  login    String?
-  email    String  @unique
-  password String
-  profile Profile?
-  dailyMeals DailyMeal[]
+  id            String         @id @default(uuid())
+  login         String?
+  email         String         @unique
+  password      String
+  profile       Profile?
+  dailyMeals    DailyMeal[]
+  shoppingLists ShoppingList[]
 }
 
 model Profile {
@@ -38,39 +39,41 @@ model Recipe {
   name        String
   description String?
 
-  ingredients RecipeIngredient[]
-  dailyMealItems DailyMealItem[] 
+  ingredients    RecipeIngredient[]
+  dailyMealItems DailyMealItem[]
 }
 
 model Ingredient {
-  id String  @id @default(uuid())
-  name String
-  calories    Int
-  protein     Int
-  fat         Int
-  carbs       Int
+  id       String @id @default(uuid())
+  name     String
+  calories Int
+  protein  Int
+  fat      Int
+  carbs    Int
 
-  recipes RecipeIngredient[]
+  recipes           RecipeIngredient[]
+  shoppingListItems ShoppingListItem[]
 }
 
 model RecipeIngredient {
-  id String  @id @default(uuid())
-  recipeId  String
+  id           String @id @default(uuid())
+  recipeId     String
   ingredientId String
-  mass Int
+  mass         Int
 
-  recipe Recipe @relation(fields: [recipeId], references: [id])
+  recipe     Recipe     @relation(fields: [recipeId], references: [id])
   ingredient Ingredient @relation(fields: [ingredientId], references: [id])
 }
 
 model DailyMeal {
-  id String  @id @default(uuid())
+  id     String   @id @default(uuid())
   userId String
-  date DateTime
+  date   DateTime
 
   items DailyMealItem[]
 
-  user User @relation(fields: [userId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
+  shoppingList ShoppingList?
 
   @@unique([userId, date])
 }
@@ -83,11 +86,38 @@ enum MealType {
 }
 
 model DailyMealItem {
-  id String  @id @default(uuid())
+  id          String   @id @default(uuid())
   dailyMealId String
-  recipeId String
-  type MealType
+  recipeId    String
+  type        MealType
 
   dailyMeal DailyMeal @relation(fields: [dailyMealId], references: [id])
-  recipe Recipe @relation(fields: [recipeId], references: [id])
+  recipe    Recipe    @relation(fields: [recipeId], references: [id])
+}
+
+model ShoppingList {
+  id          String             @id @default(uuid())
+  date        DateTime
+  userId      String
+  user        User               @relation(fields: [userId], references: [id])
+  dailyMealId String             @unique
+  dailyMeal   DailyMeal          @relation(fields: [dailyMealId], references: [id])
+  items       ShoppingListItem[]
+
+  @@unique([userId, date])
+}
+
+model ShoppingListItem {
+  id             String @id @default(uuid())
+  shoppingListId String
+
+  ingredientNameSnapshot String
+  totalMass              Int
+  isChecked              Boolean @default(false)
+
+  ingredientId String?
+  ingredient   Ingredient?  @relation(fields: [ingredientId], references: [id])
+  shoppingList ShoppingList @relation(fields: [shoppingListId], references: [id])
+
+  @@index([shoppingListId])
 }

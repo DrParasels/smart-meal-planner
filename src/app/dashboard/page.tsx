@@ -5,9 +5,8 @@ import { Button, Progress } from "antd";
 import AddMealModal from "./AddMealModal";
 import { formatDate } from "@/lib/formatDate";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { deleteMealItem, getDailyMeal, getProfile } from "@/shared/api/api";
+import { createShoppingList, deleteMealItem, getDailyMeal, getProfile } from "@/shared/api/api";
 import { useDashboardUiStore } from "@/features/dashboard/model/useDashboardUiStore";
-
 
 const MEAL_UI: { type: MealType; label: string }[] = [
   { type: "breakfast", label: "Завтрак" },
@@ -24,12 +23,17 @@ const DashboardPage = () => {
 
   const queryClient = useQueryClient();
 
-  const { data: profile, isLoading, isError, error } = useQuery({
+  const {
+    data: profile,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["profile"],
     queryFn: getProfile,
   });
 
-  const {data: dailyMeal} = useQuery({
+  const { data: dailyMeal } = useQuery({
     queryKey: ["daily-meal"],
     queryFn: getDailyMeal,
   });
@@ -39,7 +43,13 @@ const DashboardPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["daily-meal"] });
     },
+  });
 
+  const { mutate: createShopping } = useMutation({
+    mutationFn: () => createShoppingList(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ["shopping-list"]})
+    }
   })
 
   const slotSumCalories = (type: MealType) => {
@@ -68,7 +78,16 @@ const DashboardPage = () => {
       </div> */}
 
       <div className="mb-10">
-        <h3 className="pb-5">Сегодня {formatDate(dailyMeal?.date)}</h3>
+        <div className="flex justify-between">
+          <h3 className="pb-5">Сегодня {formatDate(dailyMeal?.date)}</h3>
+          <Button
+            disabled={dailyMeal?.items.length === 0}
+            onClick={() => createShopping()}
+          >
+            Сформировать список покупок
+          </Button>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
           {MEAL_UI.map((item) => (
             <div

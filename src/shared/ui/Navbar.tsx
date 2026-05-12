@@ -10,12 +10,11 @@ interface NavbarProps {
   onboarding: boolean;
 }
 
-
-const Navbar = ({user, onboarding}: NavbarProps) => {
+const Navbar = ({ user, onboarding }: NavbarProps) => {
   const router = useRouter();
   async function handleExit() {
     await fetch("/api/auth/logout", { method: "POST" });
-    
+
     router.refresh();
     redirect("/login");
   }
@@ -23,7 +22,14 @@ const Navbar = ({user, onboarding}: NavbarProps) => {
   return (
     <nav className="flex justify-between p-5 border-b border-gray-200 h-16">
       <Link href={"/"}>Главная</Link>
-      {user && !onboarding ? <Link href={"/dashboard"}>Dashboard</Link> : <></>}
+      {user && !onboarding ? (
+        <div className="flex gap-6">
+          <Link href={"/dashboard"}>План питания</Link>
+          <Link href={"/shopping-list"}>Список покупок</Link>
+        </div>
+      ) : (
+        <></>
+      )}
       <div>
         {user ? (
           <>
