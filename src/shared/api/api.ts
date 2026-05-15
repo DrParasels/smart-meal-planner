@@ -56,7 +56,7 @@ type DailyMealResponse = {
 };
 
 export const getDailyMeal = () => {
-  return apiFetch<DailyMealResponse>("/api/daily-meal");
+  return apiFetch<DailyMealResponse>("/apif/daily-meal");
 };
 
 export const deleteMealItem = (id: string) => {

@@ -1,11 +1,16 @@
 "use client";
 
 import { MealType } from "@prisma/client";
-import { Button, Progress } from "antd";
+import { Alert, Button, Progress, Spin } from "antd";
 import AddMealModal from "./AddMealModal";
 import { formatDate } from "@/lib/formatDate";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createShoppingList, deleteMealItem, getDailyMeal, getProfile } from "@/shared/api/api";
+import {
+  createShoppingList,
+  deleteMealItem,
+  getDailyMeal,
+  getProfile,
+} from "@/shared/api/api";
 import { useDashboardUiStore } from "@/features/dashboard/model/useDashboardUiStore";
 
 const MEAL_UI: { type: MealType; label: string }[] = [
@@ -25,15 +30,22 @@ const DashboardPage = () => {
 
   const {
     data: profile,
-    isLoading,
-    isError,
-    error,
+    isLoading: isLoadingProfile,
+    isError: isProfileError,
+    error: profileError,
+    refetch: refetchProfile,
   } = useQuery({
     queryKey: ["profile"],
     queryFn: getProfile,
   });
 
-  const { data: dailyMeal } = useQuery({
+  const {
+    data: dailyMeal,
+    isLoading: isLoadingDailyMeal,
+    isError: isDailyMealError,
+    error: dailyMealError,
+    refetch: refetchDailyMeal,
+  } = useQuery({
     queryKey: ["daily-meal"],
     queryFn: getDailyMeal,
   });
@@ -48,9 +60,9 @@ const DashboardPage = () => {
   const { mutate: createShopping } = useMutation({
     mutationFn: () => createShoppingList(),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ["shopping-list"]})
-    }
-  })
+      queryClient.invalidateQueries({ queryKey: ["shopping-list"] });
+    },
+  });
 
   const slotSumCalories = (type: MealType) => {
     const sum = (dailyMeal?.items ?? [])
@@ -101,9 +113,27 @@ const DashboardPage = () => {
                 </div>
               </div>
               <div className="space-y-3">
-                {(dailyMeal?.items ?? []).filter(
-                  (meal) => meal.type === item.type,
-                ).length === 0 ? (
+                {isDailyMealError ? (
+                  <Alert
+                    type="error"
+                    showIcon
+                    title="Не удалось загрузить приемы пищи"
+                    description={
+                      dailyMealError instanceof Error
+                        ? dailyMealError.message
+                        : "Попробуйте еще раз"
+                    }
+                    action={
+                      <Button onClick={() => refetchDailyMeal()}>
+                        Повторить
+                      </Button>
+                    }
+                  />
+                ) : isLoadingDailyMeal ? (
+                  <Spin />
+                ) : (dailyMeal?.items ?? []).filter(
+                    (meal) => meal.type === item.type,
+                  ).length === 0 ? (
                   <div className="text-sm text-gray-400">
                     Нет выбранных блюд
                   </div>
@@ -154,11 +184,17 @@ const DashboardPage = () => {
             <div className="text-lg font-semibold">Итого за день</div>
           </div>
           <div className="mb-3 flex items-baseline justify-center gap-1">
-            <span className="text-2xl font-bold text-green-600">
+            <span
+              className="text-2xl font-bold text-green-600"
+              data-testid="daily-sum-calories"
+            >
               {sumCalories}
             </span>
             <span className="text-base text-gray-400">/</span>
-            <span className="text-base text-gray-500">
+            <span
+              className="text-base text-gray-500"
+              data-testid="daily-total-calories"
+            >
               {profile?.dailyCalories} ккал
             </span>
           </div>
