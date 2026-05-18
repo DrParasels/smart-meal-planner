@@ -1,19 +1,19 @@
 "use client";
 
-import { Profile } from "@/entities/profile/model/types";
+import { SaveProfile } from "@/entities/profile/model/types";
 import { Button, Form, Radio, InputNumber, Input, Grid } from "antd";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { saveProfile } from "@/shared/api/api";
+import { saveProfile } from "@/entities/profile";
 
 const OnboardingForm = () => {
   const { useBreakpoint } = Grid;
-const screens = useBreakpoint();
-const isMobile = !screens.md; // md = 768+
+  const screens = useBreakpoint();
+  const isMobile = !screens.md; // md = 768+
   const router = useRouter();
   const queryClient = useQueryClient();
   const { mutate: saveProfileFn } = useMutation({
-    mutationFn: (profile: Profile) => saveProfile(profile),
+    mutationFn: (profile: SaveProfile) => saveProfile(profile),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       router.push("/dashboard");
@@ -21,7 +21,7 @@ const isMobile = !screens.md; // md = 768+
     },
   });
 
-  const onFinish = async (profile: Profile) => {
+  const onFinish = async (profile: SaveProfile) => {
     saveProfileFn(profile);
   };
   return (

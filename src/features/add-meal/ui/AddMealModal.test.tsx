@@ -1,14 +1,19 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import AddMealModal from "./AddMealModal";
-import { addRecipe, getIngredients, getRecipes } from "@/shared/api/api";
+import { AddMealModal } from "./AddMealModal";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactElement } from "react";
 import userEvent from "@testing-library/user-event";
+import { getIngredients } from "@/entities/ingredient";
+import { addRecipe, getRecipes } from "@/entities/recipe";
 
-jest.mock("@/shared/api/api", () => ({
+
+jest.mock("@/entities/recipe", () => ({
   getRecipes: jest.fn(),
-  getIngredients: jest.fn(),
   addRecipe: jest.fn(),
+}));
+
+jest.mock("@/entities/ingredient", () => ({
+  getIngredients: jest.fn(),
 }));
 
 afterEach(() => {

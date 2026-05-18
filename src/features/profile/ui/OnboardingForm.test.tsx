@@ -2,8 +2,8 @@ import { render, screen, waitFor } from "@testing-library/react";
 import type { FC, InputHTMLAttributes, ReactNode } from "react";
 import userEvent from "@testing-library/user-event";
 import OnboardingForm from "./OnboardingForm";
-import { saveProfile } from "../api/saveProfile";
-import type { Profile } from "@/entities/profile/model/types";
+import { SaveProfile } from "@/entities/profile/model/types";
+import { saveProfile } from "@/entities/profile";
 
 type WithChildren = { children?: ReactNode };
 type WithLabel = WithChildren & { label?: ReactNode };
@@ -12,7 +12,7 @@ type InputProps = InputHTMLAttributes<HTMLInputElement>;
 type FormItemProps = WithLabel & { name?: string | number | (string | number)[] };
 
 type MockFormProps = WithChildren & {
-  onFinish?: (values: Profile) => void | Promise<void>;
+  onFinish?: (values: SaveProfile) => void | Promise<void>;
 };
 
 type FormComponent = FC<MockFormProps> & { Item: FC<FormItemProps> };
@@ -25,7 +25,7 @@ jest.mock("next/navigation", () => ({
     refresh: refreshMock,
   }),
 }));
-jest.mock("../api/saveProfile", () => ({
+jest.mock("@/entities/profile", () => ({
   saveProfile: jest.fn(),
 }));
 jest.mock("antd", () => {
@@ -65,9 +65,9 @@ jest.mock("antd", () => {
           height,
           weight,
           age,
-          gender: gender as Profile["gender"],
-          activityLevel: activityLevel as Profile["activityLevel"],
-          goal: goal as Profile["goal"],
+          gender: gender as SaveProfile["gender"],
+          activityLevel: activityLevel as SaveProfile["activityLevel"],
+          goal: goal as SaveProfile["goal"],
         });
       }}
     >
@@ -227,7 +227,7 @@ describe("OnboardingForm", () => {
 
   it("Отправка формы, когда все поля заполнены", async () => {
     const user = userEvent.setup();
-    jest.mocked(saveProfile).mockResolvedValue({ message: "User created" });
+    jest.mocked(saveProfile).mockResolvedValue(undefined);
     render(<OnboardingForm />);
 
     await user.type(screen.getByRole("textbox", { name: /имя/i }), "Дима");

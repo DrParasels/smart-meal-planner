@@ -2,17 +2,15 @@
 
 import { MealType } from "@prisma/client";
 import { Alert, Button, Progress, Spin } from "antd";
-import AddMealModal from "./AddMealModal";
+import { AddMealModal } from "@/features/add-meal";
 import { formatDate } from "@/lib/formatDate";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  createShoppingList,
-  deleteMealItem,
-  getDailyMeal,
-  getProfile,
-} from "@/shared/api/api";
 import { useDashboardUiStore } from "@/features/dashboard/model/useDashboardUiStore";
 import { useState } from "react";
+import { useRemoveMeal } from "@/features/remove-meal-from-plan";
+import { getDailyMeal } from "@/entities/daily-meal";
+import { getProfile } from "@/entities/profile";
+import { createShoppingList } from "@/entities/shopping-list";
 
 const MEAL_UI: { type: MealType; label: string }[] = [
   { type: "breakfast", label: "Завтрак" },
@@ -40,10 +38,10 @@ const DashboardPage = () => {
 
   const {
     data: profile,
-    isLoading: isLoadingProfile,
-    isError: isProfileError,
-    error: profileError,
-    refetch: refetchProfile,
+    // isLoading: isLoadingProfile,
+    // isError: isProfileError,
+    // error: profileError,
+    // refetch: refetchProfile,
   } = useQuery({
     queryKey: ["profile"],
     queryFn: getProfile,
@@ -60,12 +58,7 @@ const DashboardPage = () => {
     queryFn: getDailyMeal,
   });
 
-  const { mutate: deleteItem, isPending: isDeleting } = useMutation({
-    mutationFn: (id: string) => deleteMealItem(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["daily-meal"] });
-    },
-  });
+  const { removeMeal } = useRemoveMeal();
 
   const { mutate: createShopping } = useMutation({
     mutationFn: () => createShoppingList(),
@@ -185,7 +178,7 @@ const DashboardPage = () => {
                               size="small"
                               danger
                               className="!h-auto !p-0"
-                              onClick={() => deleteItem(mealItem.id)}
+                              onClick={() => removeMeal(mealItem.id)}
                             >
                               Удалить
                             </Button>

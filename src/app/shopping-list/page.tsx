@@ -1,45 +1,27 @@
 "use client";
 
-import { getShoppingList, updateShoppingList } from "@/shared/api/api";
+import { getShoppingList } from "@/entities/shopping-list";
+import { useToggleShoppingItem } from "@/features/toggle-shopping-item";
+
 import {
   FireOutlined,
   ShoppingCartOutlined,
   TableOutlined,
 } from "@ant-design/icons";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Checkbox, ConfigProvider, Flex, Progress, Select } from "antd";
+import { useQuery } from "@tanstack/react-query";
+import { Button, Checkbox, ConfigProvider, Progress, Select } from "antd";
 
 const ShoppingPage = () => {
-  const queryClient = useQueryClient();
   const { data: shoppingList, isLoading } = useQuery({
     queryFn: getShoppingList,
     queryKey: ["shopping-list"],
   });
-  const { mutate: update } = useMutation({
-    mutationFn: ({ id, body }: { id: string; body: { isChecked: boolean } }) =>
-      updateShoppingList(id, body),
-    onMutate: ({ id, body }) => {
-      queryClient.setQueryData(
-        ["shopping-list"],
-        (old: typeof shoppingList) => {
-          if (!old) return old;
-          return {
-            ...old,
-            items: old.items.map((item) =>
-              item.id === id ? { ...item, isChecked: body.isChecked } : item,
-            ),
-          };
-        },
-      );
-    },
-  });
+
+  const { toggleItem } = useToggleShoppingItem();
 
   const items = shoppingList?.items ?? [];
   const totalCalories = items.reduce((acc, item) => acc + item.itemCalories, 0);
 
-  const handleToggle = (id: string, isChecked: boolean) => {
-    update({ id, body: { isChecked: !isChecked } });
-  };
   return (
     <div className="lg:px-10 py-5">
       <div className="flex justify-between items-center mb-5">
@@ -91,7 +73,7 @@ const ShoppingPage = () => {
                     className="flex items-center gap-3 p-3"
                   >
                     <Checkbox
-                      onChange={() => handleToggle(item.id, item.isChecked)}
+                      onChange={() => toggleItem(item.id, item.isChecked)}
                       checked={item.isChecked}
                     />
                     <span

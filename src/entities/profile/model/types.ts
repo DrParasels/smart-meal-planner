@@ -1,4 +1,4 @@
-export type Profile = {
+export type SaveProfile = {
     name: string;
     age: number;
     height: number;

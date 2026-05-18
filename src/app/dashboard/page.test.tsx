@@ -1,19 +1,26 @@
-import { deleteMealItem, getDailyMeal, getProfile } from "@/shared/api/api";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { ReactElement } from "react";
 import DashboardPage from "./page";
+import { deleteMealItem, getDailyMeal } from "@/entities/daily-meal";
+import { getProfile } from "@/entities/profile";
+import { createShoppingList } from "@/entities/shopping-list";
 
-jest.mock("@/shared/api/api", () => ({
+jest.mock("@/entities/profile", () => ({
   getProfile: jest.fn(),
+}));
+
+jest.mock("@/entities/daily-meal", () => ({
   getDailyMeal: jest.fn(),
   deleteMealItem: jest.fn(),
+}));
+
+jest.mock("@/entities/shopping-list", () => ({
   createShoppingList: jest.fn(),
 }));
 
-jest.mock("./AddMealModal", () => ({
-  __esModule: true,
-  default: () => null,
+jest.mock("@/features/add-meal", () => ({
+  AddMealModal: () => null,
 }));
 
 function renderDashboard(ui: ReactElement) {
@@ -240,7 +247,9 @@ describe("DashboardPage (integration) ошибка api", () => {
 
     expect(await breakfastScope.findByRole("alert")).toBeInTheDocument();
 
-    const refreshBtn = breakfastScope.getByRole("button", { name: /Повторить/i });
+    const refreshBtn = breakfastScope.getByRole("button", {
+      name: /Повторить/i,
+    });
     refreshBtn.click();
 
     await waitFor(() => {
