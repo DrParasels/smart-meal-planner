@@ -5,7 +5,7 @@ import OnboardingForm from '@/features/profile/ui/OnboardingForm';
 const Onboarding = () => {
    
     return (
-        <div>
+        <div className="flex flex-col items-center bg-bg">
            <OnboardingForm />
         </div>
     )

@@ -1,6 +1,7 @@
 "use client";
 
 import { CurrentUser } from "@/app/layout";
+import { CalendarOutlined } from "@ant-design/icons";
 import { Button } from "antd";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
@@ -20,8 +21,8 @@ const Navbar = ({ user, onboarding }: NavbarProps) => {
   }
 
   return (
-    <nav className="flex justify-between p-5 border-b border-gray-200 h-16">
-      <Link href={"/"}>Главная</Link>
+    <nav className="flex h-16 justify-between border-b border-border bg-surface p-5 text-text">
+      <Link href={"/"}>FitMeal</Link>
       {user && !onboarding ? (
         <div className="flex gap-6">
           <Link href={"/dashboard"}>План питания</Link>
@@ -40,10 +41,18 @@ const Navbar = ({ user, onboarding }: NavbarProps) => {
           </>
         ) : (
           <>
-            <Link href={"/login"} style={{ marginRight: 30 }}>
+            <Link
+              href={"/login"}
+              className="mr-7 text-text-secondary hover:text-text"
+            >
               Вход
             </Link>
-            <Link href={"/register"}>Регистрация</Link>
+            <Link
+              href={"/register"}
+              className="text-primary hover:text-primary-hover"
+            >
+              Регистрация
+            </Link>
           </>
         )}
       </div>

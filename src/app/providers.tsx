@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { ConfigProvider } from "antd";
 import { type ReactNode, useState } from "react";
 
 export default function Providers({ children }: { children: ReactNode }) {
@@ -19,9 +20,22 @@ export default function Providers({ children }: { children: ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <ConfigProvider
+      theme={{
+        token: {
+          controlHeight: 40, // общая высота контролов (напр. инпутов) (px)
+          borderRadius: 8,
+          colorPrimary: "#6D4CFF",
+          colorPrimaryHover: "#5B3DF0",
+          colorPrimaryActive: "#5B3DF0",
+          colorTextLightSolid: "#FFFFFF",
+        },
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        {children}
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </ConfigProvider>
   );
 }

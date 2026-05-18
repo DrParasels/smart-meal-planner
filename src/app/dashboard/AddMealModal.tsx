@@ -109,17 +109,17 @@ export const AddMealModal = ({
 
   return (
     <Modal
-      title="Добавить блюдо"
+      title={<h1 className="m-0">Добавить блюдо</h1>}
       closable={{ "aria-label": "Custom Close Button" }}
       open={open}
       onCancel={onClose}
       width={900}
-      style={{ top: 40 }}
+      style={{ top: 30 }}
       footer={null}
     >
       <div>
-        <div className="flex justify-between pb-10 pt-5">
-          <div className="w-96">
+        <div className="flex justify-between gap-5 pb-10 pt-5">
+          <div className="w-full">
             <AutoComplete
               options={recipes
                 .filter((item) =>
@@ -139,7 +139,7 @@ export const AddMealModal = ({
               placeholder="Название блюда"
             />
           </div>
-          <div className="w-96">
+          <div className="w-full">
             <Select
               mode="multiple"
               allowClear

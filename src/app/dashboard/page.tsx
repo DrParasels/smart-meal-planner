@@ -12,6 +12,7 @@ import {
   getProfile,
 } from "@/shared/api/api";
 import { useDashboardUiStore } from "@/features/dashboard/model/useDashboardUiStore";
+import { useState } from "react";
 
 const MEAL_UI: { type: MealType; label: string }[] = [
   { type: "breakfast", label: "Завтрак" },
@@ -19,12 +20,21 @@ const MEAL_UI: { type: MealType; label: string }[] = [
   { type: "dinner", label: "Ужин" },
   { type: "snack", label: "Перекус/другое" },
 ];
+const MAX_VISIBLE_MEALS = 3;
 
 const DashboardPage = () => {
   const openModal = useDashboardUiStore((s) => s.openModal);
   const mealType = useDashboardUiStore((s) => s.mealType);
   const openAddMealModal = useDashboardUiStore((s) => s.openAddMealModal);
   const closeAddMealModal = useDashboardUiStore((s) => s.closeAddMealModal);
+  const [expandedByType, setExpandedByType] = useState<
+    Record<MealType, boolean>
+  >({
+    breakfast: false,
+    lunch: false,
+    dinner: false,
+    snack: false,
+  });
 
   const queryClient = useQueryClient();
 
@@ -75,6 +85,12 @@ const DashboardPage = () => {
     (acc, meal) => acc + meal.recipe.calories,
     0,
   );
+  const toggleMealsExpanded = (type: MealType) => {
+    setExpandedByType((prev) => ({
+      ...prev,
+      [type]: !prev[type],
+    }));
+  };
 
   return (
     <div>
@@ -90,127 +106,164 @@ const DashboardPage = () => {
       </div> */}
 
       <div className="mb-10">
-        <div className="flex justify-between">
-          <h3 className="pb-5">Сегодня {formatDate(dailyMeal?.date)}</h3>
+        <div className="flex justify-between items-center mb-5">
+          <h2>Сегодня {formatDate(dailyMeal?.date)}</h2>
           <Button
+            type="primary"
             disabled={dailyMeal?.items.length === 0}
             onClick={() => createShopping()}
           >
             Сформировать список покупок
           </Button>
         </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="grid sm:grid-cols-1 lg:grid-cols-2 gap-4 lg:auto-rows-fr">
+            {MEAL_UI.map((item) => {
+              const slotItems = (dailyMeal?.items ?? []).filter(
+                (meal) => meal.type === item.type,
+              );
+              const hasOverflow = slotItems.length > MAX_VISIBLE_MEALS;
+              const isExpanded = expandedByType[item.type];
+              const visibleItems =
+                isExpanded || !hasOverflow
+                  ? slotItems
+                  : slotItems.slice(0, MAX_VISIBLE_MEALS);
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
-          {MEAL_UI.map((item) => (
-            <div
-              key={item.type}
-              className="min-h-[320px] rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <div className="text-lg font-semibold">{item.label}</div>
-                <div className="text-sm font-semibold text-green-600">
-                  {slotSumCalories(item.type)} ккал
-                </div>
-              </div>
-              <div className="space-y-3">
-                {isDailyMealError ? (
-                  <Alert
-                    type="error"
-                    showIcon
-                    title="Не удалось загрузить приемы пищи"
-                    description={
-                      dailyMealError instanceof Error
-                        ? dailyMealError.message
-                        : "Попробуйте еще раз"
-                    }
-                    action={
-                      <Button onClick={() => refetchDailyMeal()}>
-                        Повторить
-                      </Button>
-                    }
-                  />
-                ) : isLoadingDailyMeal ? (
-                  <Spin />
-                ) : (dailyMeal?.items ?? []).filter(
-                    (meal) => meal.type === item.type,
-                  ).length === 0 ? (
-                  <div className="text-sm text-gray-400">
-                    Нет выбранных блюд
+              return (
+                <div
+                  key={item.type}
+                  className="flex h-full w-full min-h-[300px] flex-col justify-between rounded-2xl border border-border bg-surface p-5 shadow-card"
+                >
+                  <div className="mb-2 flex items-center justify-between">
+                    <h3>{item.label}</h3>
+                    <div className="text-sm font-semibold text-text-green">
+                      {slotSumCalories(item.type)} ккал
+                    </div>
                   </div>
-                ) : (
-                  (dailyMeal?.items ?? [])
-                    .filter((meal) => meal.type === item.type)
-                    .map((mealItem) => (
-                      <div
-                        key={mealItem.id}
-                        className="flex items-start justify-between gap-3 border-b border-gray-100 pb-3 last:border-b-0 last:pb-0"
-                      >
-                        <div>
-                          <div className="text-base font-medium text-gray-900">
-                            {mealItem.recipe.name}
-                          </div>
-                          <div className="mt-1 flex gap-4 text-sm text-gray-700">
-                            <span>Б: {mealItem.recipe.protein}г</span>
-                            <span>Ж: {mealItem.recipe.fat}г</span>
-                            <span>У: {mealItem.recipe.carbs}г</span>
-                          </div>
-                        </div>
-                        <Button
-                          type="link"
-                          size="small"
-                          danger
-                          className="!h-auto !p-0"
-                          onClick={() => deleteItem(mealItem.id)}
-                        >
-                          Удалить
-                        </Button>
+                  <div className="space-y-3">
+                    {isDailyMealError ? (
+                      <Alert
+                        type="error"
+                        showIcon
+                        title="Не удалось загрузить приемы пищи"
+                        description={
+                          dailyMealError instanceof Error
+                            ? dailyMealError.message
+                            : "Попробуйте еще раз"
+                        }
+                        action={
+                          <Button onClick={() => refetchDailyMeal()}>
+                            Повторить
+                          </Button>
+                        }
+                      />
+                    ) : isLoadingDailyMeal ? (
+                      <Spin />
+                    ) : slotItems.length === 0 ? (
+                      <div className="text-center text-sm text-text-muted">
+                        Нет выбранных блюд
                       </div>
-                    ))
-                )}
-              </div>
-              <Button
-                type="dashed"
-                block
-                className="mt-4"
-                onClick={() => openAddMealModal(item.type)}
-              >
-                Добавить блюдо
-              </Button>
+                    ) : (
+                      <div className="pb-2 mb-0">
+                        {visibleItems.map((mealItem) => (
+                          <div
+                            key={mealItem.id}
+                            className="flex items-center justify-between gap-3 border-b border-border pb-1 mb-1 last:border-b-0 last:pb-0"
+                          >
+                            <div>
+                              <div className="text-body-sm font-medium">
+                                {mealItem.recipe.name}
+                              </div>
+                              <div className="mt-1 flex gap-4 text-sm">
+                                <span>Б: {mealItem.recipe.protein}г</span>
+                                <span>Ж: {mealItem.recipe.fat}г</span>
+                                <span>У: {mealItem.recipe.carbs}г</span>
+                              </div>
+                            </div>
+                            <Button
+                              type="link"
+                              size="small"
+                              danger
+                              className="!h-auto !p-0"
+                              onClick={() => deleteItem(mealItem.id)}
+                            >
+                              Удалить
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {!isDailyMealError &&
+                      !isLoadingDailyMeal &&
+                      hasOverflow &&
+                      slotItems.length > 0 && (
+                        <button
+                          type="button"
+                          className="w-full inline-flex mb-2 cursor-pointer items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-primary-hover"
+                          onClick={() => toggleMealsExpanded(item.type)}
+                        >
+                          <span className="h-px flex-1 bg-border-light" />
+                          {isExpanded
+                            ? "Свернуть"
+                            : `Показать еще ${slotItems.length - MAX_VISIBLE_MEALS}`}
+                          <span
+                            className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                          >
+                            ▼
+                          </span>
+                          <span className="h-px flex-1 bg-border-light" />
+                        </button>
+                      )}
+                  </div>
+                  <Button
+                    type="dashed"
+                    block
+                    className="mt-1"
+                    onClick={() => openAddMealModal(item.type)}
+                  >
+                    + Добавить блюдо
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="w-full lg:w-[360px] lg:shrink-0 mt-4 lg:mt-0 rounded-2xl border border-border bg-surface p-5 shadow-card">
+            <div className="mb-4 flex items-center justify-center">
+              <h3>Итого за день</h3>
             </div>
-          ))}
-        </div>
-        <div className="mt-4 mx-auto w-full max-w-sm min-h-[200px] rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="mb-4 flex items-center justify-center">
-            <div className="text-lg font-semibold">Итого за день</div>
-          </div>
-          <div className="mb-3 flex items-baseline justify-center gap-1">
-            <span
-              className="text-2xl font-bold text-green-600"
-              data-testid="daily-sum-calories"
-            >
-              {sumCalories}
-            </span>
-            <span className="text-base text-gray-400">/</span>
-            <span
-              className="text-base text-gray-500"
-              data-testid="daily-total-calories"
-            >
-              {profile?.dailyCalories} ккал
-            </span>
-          </div>
-          {profile?.dailyCalories && (
-            <Progress
-              percent={Math.round((sumCalories / profile.dailyCalories) * 100)}
-              strokeColor="#16a34a"
-              showInfo={false}
-              size={["100%", 15]}
-            />
-          )}
-          <div className="text-center text-sm text-gray-400">
-            Осталось:{" "}
-            <span className="font-medium text-gray-600">
-              {Math.max(0, (profile?.dailyCalories ?? 0) - sumCalories)} ккал
-            </span>
+            <div className="mb-3 flex items-baseline justify-center gap-1">
+              <span
+                className="text-2xl font-bold text-text-green"
+                data-testid="daily-sum-calories"
+              >
+                {sumCalories}
+              </span>
+              <span className="text-base text-text-muted">/</span>
+              <span
+                className="text-text-secondary"
+                data-testid="daily-total-calories"
+              >
+                {profile?.dailyCalories} ккал
+              </span>
+            </div>
+            {profile?.dailyCalories && (
+              <Progress
+                percent={Math.round(
+                  (sumCalories / profile.dailyCalories) * 100,
+                )}
+                strokeColor="#16a34a"
+                showInfo={false}
+                size={["100%", 15]}
+              />
+            )}
+            <div className="text-center text-sm text-text-muted">
+              Осталось:{" "}
+              <span className="font-medium text-text-secondary">
+                {Math.max(0, (profile?.dailyCalories ?? 0) - sumCalories)} ккал
+              </span>
+            </div>
+            <span className="flex h-px bg-border-light mb-6 mt-8" />
           </div>
         </div>
       </div>

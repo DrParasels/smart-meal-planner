@@ -1,4 +1,5 @@
 {
   "css.validate": false,
-  "scss.validate": false
+  "scss.validate": false,
+  "editor.colorDecorators": true
 }

@@ -255,4 +255,27 @@ describe("OnboardingForm", () => {
     expect(pushMock).toHaveBeenCalledWith("/dashboard");
     expect(refreshMock).toHaveBeenCalled();
   });
+
+  it("Отправка формы, когда все поля заполнены с ответом-ошибкой", async () => {
+    const user = userEvent.setup();
+    jest.mocked(saveProfile).mockRejectedValue(new Error("API error"));
+    render(<OnboardingForm />);
+
+    await user.type(screen.getByRole("textbox", { name: /имя/i }), "Дима");
+    await user.type(screen.getByRole("spinbutton", { name: "Рост" }), "180");
+    await user.type(screen.getByRole("spinbutton", { name: "Вес" }), "80");
+    await user.type(screen.getByRole("spinbutton", { name: "Возраст" }), "30");
+
+    await user.click(screen.getByRole("radio", { name: /мужской/i }));
+    await user.click(screen.getByRole("radio", { name: /средняя/i }));
+    await user.click(screen.getByRole("radio", { name: /похудеть/i }));
+
+    await user.click(screen.getByRole("button", { name: /подтвердить/i }));
+
+    await waitFor(() => {
+      expect(saveProfile).toHaveBeenCalled();
+    });
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(refreshMock).not.toHaveBeenCalled();
+  });
 });

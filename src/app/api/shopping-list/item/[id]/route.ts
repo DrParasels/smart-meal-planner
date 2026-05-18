@@ -22,6 +22,7 @@ export async function PATCH(
     } catch {
       return NextResponse.json({ error: "Bad request" }, { status: 400 });
     }
+    
     if (typeof body?.isChecked !== "boolean") {
       return NextResponse.json({ error: "Bad request" }, { status: 400 });
     }

@@ -34,8 +34,50 @@ async function apiFetch<T>(
   return (await res.json()) as T;
 }
 
+type Registration = {
+  login: string;
+  email: string;
+  password: string;
+};
+
+export const register = (payload: Registration) => {
+  return apiFetch<void>("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+};
+
+type Login = {
+  email: string;
+  password: string;
+};
+
+export const login = (payload: Login) => {
+  return apiFetch<void>("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+}
+
 export const getProfile = () => {
   return apiFetch<Profile>("/api/profile");
+};
+
+type saveProfile = {
+  name: string;
+  age: number;
+  height: number;
+  weight: number;
+  gender: string;
+  activityLevel: string;
+  goal: string;
+};
+
+export const saveProfile = (payload: saveProfile) => {
+  return apiFetch<void>("/api/profile", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 };
 
 type DailyMealResponse = {
@@ -56,7 +98,7 @@ type DailyMealResponse = {
 };
 
 export const getDailyMeal = () => {
-  return apiFetch<DailyMealResponse>("/apif/daily-meal");
+  return apiFetch<DailyMealResponse>("/api/daily-meal");
 };
 
 export const deleteMealItem = (id: string) => {
