@@ -49,7 +49,7 @@ async function main() {
   const allIngredients = await prisma.ingredient.findMany();
 
   const get = (name: string) =>
-    allIngredients.find((i) => i.name === name)!;
+    allIngredients.find((i: (typeof allIngredients)[number]) => i.name === name)!;
 
   // 🍲 RECIPES
 
@@ -76,7 +76,7 @@ async function main() {
 
   const allRecipes = await prisma.recipe.findMany();
   const r = (name: string) =>
-    allRecipes.find((i) => i.name === name)!;
+    allRecipes.find((i: (typeof allRecipes)[number]) => i.name === name)!;
 
   // 🔗 RELATIONS
 
