@@ -2,32 +2,39 @@ import { test, expect } from "@playwright/test";
 
 test("registration -> onboarding -> dashboard flow", async ({ page }) => {
   const uniqueSuffix = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const login = `playwright-user_${uniqueSuffix}`;
   const email = `pw_${test.info().project.name}_${uniqueSuffix}@example.com`;
   const password = "Qwerty123!";
+  const loginInput = page.locator("#basic_login");
+  const emailInput = page.locator("#basic_email");
 
   // 1) Registration
   await page.goto("/register");
   await expect(
     page.getByRole("heading", { name: "Регистрация" }),
   ).toBeVisible();
-  await page.getByLabel("Логин").fill("playwright-user");
-  await page.getByLabel("Email").fill(email);
+  await loginInput.click();
+  await loginInput.fill(login);
+  if ((await loginInput.inputValue()) !== login) {
+    await loginInput.click();
+    await loginInput.pressSequentially(login);
+  }
+  await emailInput.fill(email);
   await page.getByLabel("Пароль", { exact: true }).fill(password);
-  await page.getByLabel("Пароль ещё раз").fill(password);
+  await page.getByLabel("Подтвердите пароль").fill(password);
+  await expect(loginInput).toHaveValue(login);
+  await expect(emailInput).toHaveValue(email);
   const registerResponsePromise = page.waitForResponse(
     (response) =>
       response.url().includes("/api/auth/register") &&
       response.request().method() === "POST",
   );
-  await page.getByRole("button", { name: "Регистрация" }).click();
+  await page.getByRole("button", { name: "Зарегистрироваться" }).click();
   const registerResponse = await registerResponsePromise;
   expect(registerResponse.ok()).toBeTruthy();
-
-   // На странице сейчас нет redirect после успешной регистрации,
-  // поэтому продолжаем через login.
-  await page.goto("/login");
-  await expect(page.getByRole("heading", {name:"Вход"})).toBeVisible();
-  await page.getByLabel("email").fill(email);
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("heading", { name: "Вход" })).toBeVisible();
+  await page.getByLabel("Email").fill(email);
   await page.getByLabel("Пароль").fill(password);
   const loginResponsePromise = page.waitForResponse(
     (response) =>
@@ -82,18 +89,18 @@ test("registration -> onboarding -> dashboard flow", async ({ page }) => {
         age: 30,
         gender: "male",
         activityLevel: "medium",
-        goal: "medium",
+        goal: "maintain",
       },
     });
     expect(fallbackProfile.ok()).toBeTruthy();
     await page.goto("/dashboard");
   }
 
-    // 4) Dashboard
-    await expect(page).toHaveURL(/\/dashboard$/);
-    await expect(page.getByText("Итого за день")).toBeVisible();
-    // Ключевые данные dashboard
-    await expect(page.getByTestId("daily-sum-calories")).toBeVisible();
-    await expect(page.getByTestId("daily-total-calories")).toBeVisible();
-    await expect(page.getByText("Осталось:")).toBeVisible();
+  // 4) Dashboard
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByText("Итого за день")).toBeVisible();
+  // Ключевые данные dashboard
+  await expect(page.getByTestId("daily-sum-calories")).toBeVisible();
+  await expect(page.getByTestId("daily-total-calories")).toBeVisible();
+  await expect(page.getByText("Осталось:")).toBeVisible();
 });

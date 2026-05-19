@@ -1,5 +1,5 @@
 import { apiFetch } from "@/shared/api/api";
-import { ShoppingList, UpdateShoppingList } from "../model/types";
+import type { ShoppingList, UpdateShoppingList } from "@/entities/shopping-list";
 
 export const createShoppingList = () => {
   return apiFetch("/api/shopping-list", {

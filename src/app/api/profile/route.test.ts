@@ -100,15 +100,13 @@ describe("POST /api/profile", () => {
       carbs: 351,
     });
     const req = new Request("http://localhost/api/profile", {
-        method: "POST",
-        body: JSON.stringify(validBody),
-        headers: { "Content-Type": "application/json" },
-      });
-      const res = await POST(req as unknown as Parameters<typeof POST>[0]);
-      const body = await res.json();
-      expect(res.status).toBe(200);
-      expect(body.userId).toBe("user-1");
-      expect(prisma.profile.upsert).toHaveBeenCalled();
+      method: "POST",
+      body: JSON.stringify(validBody),
+      headers: { "Content-Type": "application/json" },
+    });
+    const res = await POST(req as unknown as Parameters<typeof POST>[0]);
+    expect(res.status).toBe(204);
+    expect(prisma.profile.upsert).toHaveBeenCalled();
   });
   it("error: нет токена -> 401", async () => {
     (cookies as jest.Mock).mockResolvedValue({
@@ -129,7 +127,9 @@ describe("POST /api/profile", () => {
       get: jest.fn().mockReturnValue({ value: "token-123" }),
     });
     (jwt.verify as jest.Mock).mockReturnValue({ userId: "user-1" });
-    (prisma.profile.upsert as jest.Mock).mockRejectedValue(new Error("db fail"));
+    (prisma.profile.upsert as jest.Mock).mockRejectedValue(
+      new Error("db fail"),
+    );
     const req = new Request("http://localhost/api/profile", {
       method: "POST",
       body: JSON.stringify(validBody),

@@ -11,6 +11,7 @@ import { useRemoveMeal } from "@/features/remove-meal-from-plan";
 import { getDailyMeal } from "@/entities/daily-meal";
 import { getProfile } from "@/entities/profile";
 import { createShoppingList } from "@/entities/shopping-list";
+import { queryKeys } from "@/shared/config/queryKeys";
 
 const MEAL_UI: { type: MealType; label: string }[] = [
   { type: "breakfast", label: "Завтрак" },
@@ -43,7 +44,7 @@ const DashboardPage = () => {
     // error: profileError,
     // refetch: refetchProfile,
   } = useQuery({
-    queryKey: ["profile"],
+    queryKey: queryKeys.profile,
     queryFn: getProfile,
   });
 
@@ -54,7 +55,7 @@ const DashboardPage = () => {
     error: dailyMealError,
     refetch: refetchDailyMeal,
   } = useQuery({
-    queryKey: ["daily-meal"],
+    queryKey: queryKeys.dailyMeal,
     queryFn: getDailyMeal,
   });
 
@@ -63,7 +64,7 @@ const DashboardPage = () => {
   const { mutate: createShopping } = useMutation({
     mutationFn: () => createShoppingList(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["shopping-list"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.shoppingList });
     },
   });
 
@@ -151,7 +152,9 @@ const DashboardPage = () => {
                         }
                       />
                     ) : isLoadingDailyMeal ? (
-                      <Spin />
+                      <div className="flex justify-center py-4">
+                        <Spin />
+                      </div>
                     ) : slotItems.length === 0 ? (
                       <div className="text-center text-sm text-text-muted">
                         Нет выбранных блюд

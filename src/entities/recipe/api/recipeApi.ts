@@ -1,5 +1,5 @@
 import { DailyMealItem } from "@prisma/client";
-import { AddRecipePayload, RecipeWithIngredients } from "../model/types";
+import type { AddRecipePayload, RecipeWithIngredients } from "@/entities/recipe";
 import { apiFetch } from "@/shared/api/api";
 
 export const getRecipes = () => {

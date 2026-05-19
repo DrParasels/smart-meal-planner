@@ -2,6 +2,7 @@
 
 import { getShoppingList } from "@/entities/shopping-list";
 import { useToggleShoppingItem } from "@/features/toggle-shopping-item";
+import { queryKeys } from "@/shared/config/queryKeys";
 
 import {
   FireOutlined,
@@ -14,7 +15,7 @@ import { Button, Checkbox, ConfigProvider, Progress, Select } from "antd";
 const ShoppingPage = () => {
   const { data: shoppingList, isLoading } = useQuery({
     queryFn: getShoppingList,
-    queryKey: ["shopping-list"],
+    queryKey: queryKeys.shoppingList,
   });
 
   const { toggleItem } = useToggleShoppingItem();

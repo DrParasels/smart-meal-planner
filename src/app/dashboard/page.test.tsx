@@ -95,7 +95,7 @@ describe("DashboardPage (fullfiled api)", () => {
   it("Отображение имени рецепта, БЖУ, ккал в карточке", async () => {
     renderDashboard(<DashboardPage />);
     const title = screen.getByText("Завтрак");
-    const card = title.closest(".rounded-xl");
+    const card = title.closest(".rounded-2xl");
     expect(card).not.toBeNull();
     const scope = within(card as HTMLElement);
     expect(await scope.findByText("Яблоко")).toBeInTheDocument();
@@ -182,7 +182,7 @@ describe("DashboardPage (integration)", () => {
   it("Удаление блюда по кнопке Удалить", async () => {
     renderDashboard(<DashboardPage />);
     const breakfastTitle = await screen.findByText("Завтрак");
-    const breakfastCard = breakfastTitle.closest(".rounded-xl");
+    const breakfastCard = breakfastTitle.closest(".rounded-2xl");
     expect(breakfastCard).not.toBeNull();
     const breakfastScope = within(breakfastCard as HTMLElement);
 
@@ -239,7 +239,7 @@ describe("DashboardPage (integration) ошибка api", () => {
     renderDashboard(<DashboardPage />);
 
     const breakfastTitle = await screen.findByText("Завтрак");
-    const breakfastCard = breakfastTitle.closest(".rounded-xl");
+    const breakfastCard = breakfastTitle.closest(".rounded-2xl");
     expect(breakfastCard).not.toBeNull();
     const breakfastScope = within(breakfastCard as HTMLElement);
 

@@ -1,3 +1,5 @@
+"use client"
+
 import { Button, Checkbox, Form, Input } from "antd";
 import type { FieldType } from "../model/types";
 import { useLogin } from "../model/useLogin";

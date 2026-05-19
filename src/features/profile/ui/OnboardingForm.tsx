@@ -1,36 +1,15 @@
 "use client";
 
-import { SaveProfile } from "@/entities/profile/model/types";
 import { Button, Form, Radio, InputNumber, Input, Grid } from "antd";
-import { useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { saveProfile } from "@/entities/profile";
+import { useOnboardingForm } from "../model/useOnboardingForm";
 
 const OnboardingForm = () => {
   const { useBreakpoint } = Grid;
   const screens = useBreakpoint();
   const isMobile = !screens.md; // md = 768+
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const { mutate: saveProfileFn } = useMutation({
-    mutationFn: (profile: SaveProfile) => saveProfile(profile),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-      router.push("/dashboard");
-      router.refresh();
-    },
-  });
-
-  const onFinish = async (profile: SaveProfile) => {
-    saveProfileFn(profile);
-  };
+  const { onFinish } = useOnboardingForm();
   return (
-    <div className="w-full max-w-6xl rounded-xl border border-border bg-surface px-4 py-6 md:px-10 md:py-10 shadow-card">
-      <h2 className="pb-2 text-text">Заполнить данные пользователя</h2>
-      <p className="pb-6 text-text-muted">
-        Эти данные помогут нам подобрать подходящее питание для вас
-      </p>
-      <span className="mb-6 flex h-px bg-border-light" />
+
       <Form
         name="nest-messages"
         onFinish={onFinish}
@@ -108,7 +87,6 @@ const OnboardingForm = () => {
           </Button>
         </Form.Item>
       </Form>
-    </div>
   );
 };
 

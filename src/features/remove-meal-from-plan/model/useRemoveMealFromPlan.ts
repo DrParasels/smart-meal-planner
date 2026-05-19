@@ -1,5 +1,6 @@
 
 import { deleteMealItem } from "@/entities/daily-meal";
+import { queryKeys } from "@/shared/config/queryKeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useRemoveMeal = () => {
@@ -10,7 +11,7 @@ export const useRemoveMeal = () => {
   } = useMutation({
     mutationFn: (id: string) => deleteMealItem(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["daily-meal"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dailyMeal });
     },
   });
 

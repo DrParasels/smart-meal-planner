@@ -6,8 +6,9 @@ import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@/lib/jwt";
 import { prisma } from "@/lib/prisma";
-import { getUserIdFromCookies } from "@/lib/auth";
 import Providers from "./providers";
+import { AntdRegistry } from "@ant-design/nextjs-registry";
+import "antd/dist/reset.css";
 
 export interface CurrentUser {
   login: string;
@@ -54,10 +55,12 @@ export default async function RootLayout({
   return (
     <html lang="en" className={rubik.variable}>
       <body>
-        <Navbar user={user} onboarding={!hasProfile} />
-        <main className="main-content">
-          <Providers>{children}</Providers>
-        </main>
+        <AntdRegistry>
+          <Navbar user={user} onboarding={!hasProfile} />
+          <main className="main-content">
+            <Providers>{children}</Providers>
+          </main>
+        </AntdRegistry>
       </body>
     </html>
   );

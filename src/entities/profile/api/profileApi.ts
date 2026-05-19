@@ -1,5 +1,5 @@
 import { apiFetch } from "@/shared/api/api";
-import { SaveProfile } from "../model/types";
+import type { SaveProfile } from "@/entities/profile";
 import { Profile } from "@prisma/client";
 
 export const getProfile = () => {

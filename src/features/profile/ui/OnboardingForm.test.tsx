@@ -2,14 +2,17 @@ import { render, screen, waitFor } from "@testing-library/react";
 import type { FC, InputHTMLAttributes, ReactNode } from "react";
 import userEvent from "@testing-library/user-event";
 import OnboardingForm from "./OnboardingForm";
-import { SaveProfile } from "@/entities/profile/model/types";
+import type { SaveProfile } from "@/entities/profile";
 import { saveProfile } from "@/entities/profile";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 type WithChildren = { children?: ReactNode };
 type WithLabel = WithChildren & { label?: ReactNode };
 type InputProps = InputHTMLAttributes<HTMLInputElement>;
 
-type FormItemProps = WithLabel & { name?: string | number | (string | number)[] };
+type FormItemProps = WithLabel & {
+  name?: string | number | (string | number)[];
+};
 
 type MockFormProps = WithChildren & {
   onFinish?: (values: SaveProfile) => void | Promise<void>;
@@ -31,6 +34,9 @@ jest.mock("@/entities/profile", () => ({
 jest.mock("antd", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- Jest hoists mocks; need runtime React in factory
   const React = require("react") as typeof import("react");
+  const Grid = {
+    useBreakpoint: () => ({ md: true }),
+  };
 
   const MockForm: FC<MockFormProps> = ({ children, onFinish }) => (
     <form
@@ -84,7 +90,10 @@ jest.mock("antd", () => {
           ? name.map(String).join(".")
           : String(name);
 
-    const child = React.Children.only(children) as React.ReactElement | null | undefined;
+    const child = React.Children.only(children) as
+      | React.ReactElement
+      | null
+      | undefined;
     const withName =
       fieldKey && React.isValidElement(child)
         ? React.cloneElement(child, { name: fieldKey } as never)
@@ -149,7 +158,10 @@ jest.mock("antd", () => {
   );
   MockRadioButton.displayName = "MockRadioButton";
 
-  const MockFlex: FC<WithChildren & { name?: string }> = ({ children, name }) => {
+  const MockFlex: FC<WithChildren & { name?: string }> = ({
+    children,
+    name,
+  }) => {
     const only = React.Children.only(children);
     return (
       <div>
@@ -193,17 +205,22 @@ jest.mock("antd", () => {
     Radio,
     Flex: MockFlex,
     Button: MockButton,
+    Grid,
   };
 });
+
+const renderWithClient = (ui: React.ReactElement) => {
+  const queryClient = new QueryClient();
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+  );
+};
 describe("OnboardingForm", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
   it("Отрисовка всех обязательных полей и кнопки сабмит", () => {
-    render(<OnboardingForm />);
-    expect(
-      screen.getByRole("heading", { name: /заполнить данные пользователя/i }),
-    ).toBeInTheDocument();
+    renderWithClient(<OnboardingForm />);
     expect(screen.getByLabelText("Имя")).toBeInTheDocument();
     expect(screen.getByText("Рост")).toBeInTheDocument();
     expect(screen.getByText("Вес")).toBeInTheDocument();
@@ -218,7 +235,7 @@ describe("OnboardingForm", () => {
 
   it("Не отправляет форму, если обязательные поля пустые", async () => {
     const user = userEvent.setup();
-    render(<OnboardingForm />);
+    renderWithClient(<OnboardingForm />);
     await user.click(screen.getByRole("button", { name: /подтвердить/i }));
     expect(saveProfile).not.toHaveBeenCalled();
     expect(pushMock).not.toHaveBeenCalled();
@@ -228,7 +245,7 @@ describe("OnboardingForm", () => {
   it("Отправка формы, когда все поля заполнены", async () => {
     const user = userEvent.setup();
     jest.mocked(saveProfile).mockResolvedValue(undefined);
-    render(<OnboardingForm />);
+    renderWithClient(<OnboardingForm />);
 
     await user.type(screen.getByRole("textbox", { name: /имя/i }), "Дима");
     await user.type(screen.getByRole("spinbutton", { name: "Рост" }), "180");
@@ -259,7 +276,7 @@ describe("OnboardingForm", () => {
   it("Отправка формы, когда все поля заполнены с ответом-ошибкой", async () => {
     const user = userEvent.setup();
     jest.mocked(saveProfile).mockRejectedValue(new Error("API error"));
-    render(<OnboardingForm />);
+    renderWithClient(<OnboardingForm />);
 
     await user.type(screen.getByRole("textbox", { name: /имя/i }), "Дима");
     await user.type(screen.getByRole("spinbutton", { name: "Рост" }), "180");

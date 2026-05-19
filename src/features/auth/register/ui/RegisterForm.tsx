@@ -1,3 +1,5 @@
+"use client"
+
 import { Button, Form, Input } from "antd";
 import type { FieldType } from "../model/types";
 import { useRegister } from "../model/useRegister";

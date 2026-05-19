@@ -69,6 +69,7 @@ async function main() {
       { name: "Кола zero", description: "Кола zero" },
       { name: "Чипсы", description: "Чипсы" },
       { name: "Картошка", description: "Картошка" },
+      { name: "Куриная грудка", description: "Продукт без добавок" },
     ],
     skipDuplicates: true,
   });

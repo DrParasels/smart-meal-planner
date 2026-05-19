@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     }
 
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    if (!emailOk || password.length < 6) {
+    if (!emailOk || password.length < 4) {
       return NextResponse.json(
         { error: "Invalid email or password too short" },
         { status: 422 },

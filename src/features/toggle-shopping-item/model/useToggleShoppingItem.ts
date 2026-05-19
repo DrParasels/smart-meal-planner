@@ -1,6 +1,7 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { QueryKey, useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateShoppingList } from "@/entities/shopping-list";
-import { ShoppingList } from "@/entities/shopping-list/model/types";
+import type { ShoppingList } from "@/entities/shopping-list";
+import { queryKeys } from "@/shared/config/queryKeys";
 
 type ToggleArgs = {
   id: string;
@@ -12,7 +13,7 @@ type Context = {
 };
 
 export const useToggleShoppingItem = (
-  shoppingListQueryKey: string[] = ["shopping-list"],
+  shoppingListQueryKey: QueryKey = queryKeys.shoppingList,
 ) => {
   const queryClient = useQueryClient();
 

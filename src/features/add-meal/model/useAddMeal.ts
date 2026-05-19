@@ -4,7 +4,8 @@ import { AddMealModalProps } from "./types";
 import { Ingredient } from "@prisma/client";
 import { getIngredients } from "@/entities/ingredient";
 import { addRecipe, getRecipes } from "@/entities/recipe";
-import { RecipeWithIngredients } from "@/entities/recipe/model/types";
+import type { RecipeWithIngredients } from "@/entities/recipe";
+import { queryKeys } from "@/shared/config/queryKeys";
 
 type UseAddMealReturn = {
   filters: {
@@ -39,18 +40,18 @@ export const useAddMeal = ({
 
   const { data: recipes = [] } = useQuery({
     queryFn: getRecipes,
-    queryKey: ["recipes"],
+    queryKey: queryKeys.recipes,
   });
 
   const { data: ingredients = [] } = useQuery({
     queryFn: getIngredients,
-    queryKey: ["ingredients"],
+    queryKey: queryKeys.ingredients,
   });
 
   const { mutate: addNewRecipe } = useMutation({
     mutationFn: addRecipe,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["daily-meal"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dailyMeal });
       onClose();
     },
   });

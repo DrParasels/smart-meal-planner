@@ -1,5 +1,5 @@
 import { apiFetch } from "@/shared/api/api";
-import { DailyMealResponse } from "../model/types";
+import type { DailyMealResponse } from "@/entities/daily-meal";
 
 export const getDailyMeal = () => {
   return apiFetch<DailyMealResponse>("/api/daily-meal");
